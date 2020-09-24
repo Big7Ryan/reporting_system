@@ -13,11 +13,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +43,6 @@ public class APITest {
     
     @Test
     public void testListFiles() throws FileNotFoundException {
-       // Mockito.when(excelService.getExcelBodyById(anyString())).thenReturn(new FileInputStream("temp.xlsx"));
     	List<ExcelFile> excelFiles = new ArrayList<>();
     	ExcelFile file1 = new ExcelFile("1"); 
     	ExcelFile file2 = new ExcelFile("2");

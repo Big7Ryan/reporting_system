@@ -4,7 +4,6 @@ import com.antra.evaluation.reporting_system.pojo.api.ExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.api.ExcelResponse;
 import com.antra.evaluation.reporting_system.pojo.api.MultiSheetExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.report.*;
-import com.antra.evaluation.reporting_system.service.ExcelGenerationServiceImpl;
 import com.antra.evaluation.reporting_system.service.ExcelService;
 
 import io.swagger.annotations.ApiOperation;
@@ -21,16 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -140,7 +134,6 @@ public class ExcelGenerationController {
     @ExceptionHandler()
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public void illegalArgumentExceptionHandler(IllegalArgumentException ex) {
-//    	log.error("Download failed. The given \"id\" may not exist.");
     	log.error(ex.toString());
     }
     

@@ -32,14 +32,6 @@ public class ExcelServiceImpl implements ExcelService {
     public InputStream getExcelBodyById(String id) {
 
         Optional<ExcelFile> fileInfo = excelRepository.getFileById(id);
-       // if (fileInfo.isPresent()) {
-//            File file = new File("temp.xlsx");
-//            try {
-//                return new FileInputStream(file);
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-      //  }
         if(fileInfo.isPresent() && !fileInfo.isEmpty()) {
         	File file = new File(fileInfo.get().getFileId() + ".xlsx");
         	try {
