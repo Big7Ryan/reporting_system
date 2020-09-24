@@ -72,13 +72,9 @@ public class APITest {
 
     @Test
     public void testCreateExcel() throws IOException {
-        File currDir = new File(".");
-        String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + "1.xlsx";
-    	Mockito.when(excelService.createId()).thenReturn("1");
-    	Mockito.when(excelService.generateExcelReport(Mockito.any())).thenReturn(new File(fileLocation));
-    	Mockito.doNothing().when(excelService).saveExcelFiles(Mockito.any());;
-        given().accept("application/json").contentType(ContentType.JSON).body("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]]}").post("/excel").peek().
+    	ExcelFile excelFile = new ExcelFile("1");
+    	Mockito.when(excelService.createMultiSheetExcel(Mockito.any())).thenReturn(excelFile);
+    	given().accept("application/json").contentType(ContentType.JSON).body("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]]}").post("/excel/auto").peek().
     		then().assertThat()
     		.statusCode(201)
     		.body("excelFile.fileId", Matchers.equalTo("1"));
@@ -86,13 +82,9 @@ public class APITest {
     
     @Test
     public void testCreateMultiSheetExcel() throws IOException {
-        File currDir = new File(".");
-        String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + "1.xlsx";
-    	Mockito.when(excelService.createId()).thenReturn("1");
-    	Mockito.when(excelService.generateExcelReport(Mockito.any())).thenReturn(new File(fileLocation));
-    	Mockito.doNothing().when(excelService).saveExcelFiles(Mockito.any());;
-        given().accept("application/json").contentType(ContentType.JSON).body("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]], \"splitBy\":\"Age\"}}").post("/excel/auto").peek().
+    	ExcelFile excelFile = new ExcelFile("1");
+    	Mockito.when(excelService.createMultiSheetExcel(Mockito.any())).thenReturn(excelFile);
+    	given().accept("application/json").contentType(ContentType.JSON).body("{\"headers\":[\"Name\",\"Age\"], \"data\":[[\"Teresa\",\"5\"],[\"Daniel\",\"1\"]], \"splitBy\":\"Age\"}}").post("/excel/auto").peek().
     		then().assertThat()
     		.statusCode(201)
     		.body("excelFile.fileId", Matchers.equalTo("1"));

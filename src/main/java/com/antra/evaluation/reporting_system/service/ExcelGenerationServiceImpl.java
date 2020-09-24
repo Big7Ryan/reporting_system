@@ -1,8 +1,14 @@
 package com.antra.evaluation.reporting_system.service;
 
+import com.antra.evaluation.reporting_system.pojo.api.ExcelRequest;
+import com.antra.evaluation.reporting_system.pojo.api.MultiSheetExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelData;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelDataHeader;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelDataSheet;
+import com.antra.evaluation.reporting_system.pojo.report.ExcelDataType;
+import com.antra.evaluation.reporting_system.pojo.report.ExcelFile;
+import com.antra.evaluation.reporting_system.repo.ExcelRepository;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -12,8 +18,12 @@ import org.springframework.util.StringUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data Stucture
@@ -116,4 +126,56 @@ public class ExcelGenerationServiceImpl implements ExcelGenerationService {
         return new File(fileLocation);
     }
 
+    @Override
+    public ExcelFile createExcel(ExcelRequest request, ExcelRepository excelRepository) throws IOException {
+        List<ExcelDataHeader> headers = createHeaders(request.getHeaders());
+        List<List<Object>> dataRows = request.getData();
+        ExcelDataSheet excelSheet = new ExcelDataSheet("Sheet1", headers, dataRows);
+        ExcelData excelData = new ExcelData(excelRepository.createId(), LocalDateTime.now(), excelSheet);
+        File file = generateExcelReport(excelData);
+        ExcelFile excelFile = new ExcelFile(excelData.getTitle(), LocalDateTime.now(), file.length(), "/excel/" + excelData.getTitle() +"/content");
+        excelRepository.saveFile(excelFile);
+        return excelFile;
+    }
+    
+    @Override
+    public ExcelFile createMultiSheetExcel(MultiSheetExcelRequest request, ExcelRepository excelRepository) throws IOException {
+        List<ExcelDataHeader> headers = createHeaders(request.getHeaders());
+        List<List<Object>> dataRows = request.getData();
+        
+        int headerIndex = 0;
+        for(ExcelDataHeader header : headers) {
+        	if(header.getName().equals(request.getSplitBy())) break;
+        	headerIndex++;
+        }
+        Map<String, List<List<Object>>> spliterMap = new HashMap<>();
+        for(List<Object> dataRow : dataRows) {
+        	String spliter = dataRow.get(headerIndex).toString();
+        	if(!spliterMap.containsKey(spliter)) spliterMap.put(spliter, new ArrayList<>());
+        	spliterMap.get(spliter).add(dataRow);
+        }
+        
+        List<ExcelDataSheet> excelSheets = new ArrayList<>();
+        for(Map.Entry<String, List<List<Object>>> entry : spliterMap.entrySet()) {
+        	ExcelDataSheet excelSheet = new ExcelDataSheet(entry.getKey(), headers, entry.getValue());
+        	excelSheets.add(excelSheet);
+        }
+        ExcelData excelData = new ExcelData(excelRepository.createId(), LocalDateTime.now(), excelSheets);
+        
+        File file = generateExcelReport(excelData);
+    	
+    	
+        ExcelFile excelFile = new ExcelFile(excelData.getTitle(), LocalDateTime.now(), file.length(), "/excel/" + excelData.getTitle() +"/content");
+        excelRepository.saveFile(excelFile);
+        return excelFile;
+    }
+    
+    private List<ExcelDataHeader> createHeaders(List<String> contents) {
+    	List<ExcelDataHeader> headers = new ArrayList<>();
+    	for(String content : contents) {
+    		ExcelDataHeader header = new ExcelDataHeader(content, ExcelDataType.STRING, 64);
+    		headers.add(header);
+    	}
+    	return headers;
+    }
 }

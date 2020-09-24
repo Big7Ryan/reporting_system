@@ -53,109 +53,25 @@ public class ExcelGenerationController {
     public ResponseEntity<ExcelResponse> createExcel(@RequestBody @Validated ExcelRequest request) throws IOException {
     	log.info("Start Creating an excel.");
         ExcelResponse response = new ExcelResponse();
-        //ExcelFile <-- ExcelData <-- ExcelDataSheet <-- headers + dataRows
-        
-        //TODO Change the Type of header in ExcelDataHeader
-        List<ExcelDataHeader> headers = createHeaders(request.getHeaders());
-        List<List<Object>> dataRows = request.getData();
-        ExcelDataSheet excelSheet = new ExcelDataSheet("Sheet1", headers, dataRows);
-        ExcelData excelData = new ExcelData(excelService.createId(), LocalDateTime.now(), excelSheet);
-        File file = excelService.generateExcelReport(excelData);
-//        }
-//        catch (IOException e) {
-//        	log.error("IOException. Failed to generate excel report");
-//        }
-        //Should the generated time be equal to the generated time of excelData?
-        ExcelFile excelFile = new ExcelFile(excelData.getTitle(), LocalDateTime.now(), file.length(), "/excel/" + excelData.getTitle() +"/content");
-        excelService.saveExcelFiles(excelFile);
+        ExcelFile excelFile = excelService.createExcel(request);
         response.setExcelFile(excelFile);
         log.info("Excel created successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-//    @PostMapping("/excel/s")
-//    @ApiOperation("Generate multiple excels with multiple data at the same time")
-//    public ResponseEntity<ExcelResponse> createExcels(@RequestBody @Validated List<ExcelRequest> requests) throws IOException {
-//    	log.info("Start Creating an excel.");
-//    	ExcelResponse response = new ExcelResponse();
-//    	
-//    	for(ExcelRequest request : requests) {
-//            //ExcelFile <-- ExcelData <-- ExcelDataSheet <-- headers + dataRows
-//            //TODO Change the Type of header in ExcelDataHeader
-//            List<ExcelDataHeader> headers = createHeaders(request.getHeaders());
-//            List<List<Object>> dataRows = request.getData();
-//            ExcelDataSheet excelSheet = new ExcelDataSheet("Sheet1", headers, dataRows);
-//            ExcelData excelData = new ExcelData(excelService.createId(), LocalDateTime.now(), excelSheet);
-//            
-//            File file = excelService.generateExcelReport(excelData);
-//            //Should the generated time be equal to the generated time of excelData?
-//            ExcelFile excelFile = new ExcelFile(excelData.getTitle(), LocalDateTime.now(), file.length(), "/excel/" + excelData.getTitle() +"/content");
-//            excelService.saveExcelFiles(excelFile);
-////            response.setExcelFile(excelFile);
-//            response.getExcelFiles().add(excelFile);
-//    	}
-//        
-//
-//        log.info("Excel created successfully");
-//        return new ResponseEntity<>(response, HttpStatus.CREATED);
-//    }
-    
     @PostMapping("/excel/auto")
     @ApiOperation("Generate Multi-Sheet Excel Using Split field")
     public ResponseEntity<ExcelResponse> createMultiSheetExcel(@RequestBody @Validated MultiSheetExcelRequest request) throws IOException {
         
     	log.info("Start creating a multi-sheet excel.");
     	ExcelResponse response = new ExcelResponse();
-
-        
-        //ExcelFile <-- ExcelData <-- multiple ExcelDataSheets <-- headers + dataRows
-        //TODO Change the Type of header in ExcelDataHeader
-        List<ExcelDataHeader> headers = createHeaders(request.getHeaders());
-        List<List<Object>> dataRows = request.getData();
-        
-        int headerIndex = 0;
-        for(ExcelDataHeader header : headers) {
-        	if(header.getName().equals(request.getSplitBy())) break;
-        	headerIndex++;
-        }
-        Map<String, List<List<Object>>> spliterMap = new HashMap<>();
-        for(List<Object> dataRow : dataRows) {
-        	String spliter = dataRow.get(headerIndex).toString();
-        	if(!spliterMap.containsKey(spliter)) spliterMap.put(spliter, new ArrayList<>());
-        	spliterMap.get(spliter).add(dataRow);
-        }
-        
-        List<ExcelDataSheet> excelSheets = new ArrayList<>();
-        for(Map.Entry<String, List<List<Object>>> entry : spliterMap.entrySet()) {
-        	ExcelDataSheet excelSheet = new ExcelDataSheet(entry.getKey(), headers, entry.getValue());
-        	excelSheets.add(excelSheet);
-        }
-        ExcelData excelData = new ExcelData(excelService.createId(), LocalDateTime.now(), excelSheets);
-        
-        File file = null;
-//        try {
-    	file = excelService.generateExcelReport(excelData);
-//        }
-//        catch (IOException e) {
-//        	log.error("IOException. Failed to generate excel report");
-//        }
-        
-        //Should the generated time be equal to the generated time of excelData?
-        ExcelFile excelFile = new ExcelFile(excelData.getTitle(), LocalDateTime.now(), file.length(), "/excel/" + excelData.getTitle() +"/content");
-        excelService.saveExcelFiles(excelFile);
+    	ExcelFile excelFile = excelService.createMultiSheetExcel(request);
         response.setExcelFile(excelFile);
         log.info("Multi-sheet Excel created successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     
-    private List<ExcelDataHeader> createHeaders(List<String> contents) {
-    	List<ExcelDataHeader> headers = new ArrayList<>();
-    	for(String content : contents) {
-    		ExcelDataHeader header = new ExcelDataHeader(content, ExcelDataType.STRING, 64);
-    		headers.add(header);
-    	}
-    	return headers;
-    }
+
 
     @GetMapping("/excel")
     @ApiOperation("List all existing files")
@@ -172,20 +88,11 @@ public class ExcelGenerationController {
     @ApiOperation("Download a existing file with a given id")
     public void downloadExcel(@PathVariable String id, HttpServletResponse response) throws IOException {
     	log.info("Try to Download " + id + ".xls");
-//    	try {
         InputStream fis = excelService.getExcelBodyById(id);
         response.setHeader("Content-Type","application/vnd.ms-excel");
         response.setHeader("Content-Disposition","attachment; filename=" + id + ".xls");
         FileCopyUtils.copy(fis, response.getOutputStream());
         log.info("Copied " + id + ".xls succussfully");
-//    	}
-//    	catch(IOException e) {
-//    		log.error("Download failed. IOException.");
-//    		e.printStackTrace();
-//    	}
-//    	catch(IllegalArgumentException e) {
-//    		log.error("Download failed. The \"id: " + id + "\" may not exist.");
-//    	}
     }
 
     @GetMapping("/excel/all")

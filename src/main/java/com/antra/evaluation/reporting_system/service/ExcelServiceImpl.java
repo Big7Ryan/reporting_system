@@ -2,6 +2,8 @@ package com.antra.evaluation.reporting_system.service;
 
 import com.antra.evaluation.reporting_system.repo.ExcelRepository;
 import com.antra.evaluation.reporting_system.endpoint.ExcelGenerationController;
+import com.antra.evaluation.reporting_system.pojo.api.ExcelRequest;
+import com.antra.evaluation.reporting_system.pojo.api.MultiSheetExcelRequest;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelData;
 import com.antra.evaluation.reporting_system.pojo.report.ExcelFile;
 
@@ -87,5 +89,14 @@ public class ExcelServiceImpl implements ExcelService {
     	return excelRepository.createId();
     }
     
+    @Override
+    public ExcelFile createExcel(ExcelRequest request) throws IOException {
+    	return excelGenerationService.createExcel(request, excelRepository);
+    }
+    
+    @Override
+    public ExcelFile createMultiSheetExcel(MultiSheetExcelRequest request) throws IOException {
+    	return excelGenerationService.createMultiSheetExcel(request, excelRepository);
+    }
 
 }
